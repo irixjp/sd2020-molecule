@@ -1,0 +1,27 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+  - ignore_errors: yes
+    block:
+    - name: httpdパッケージの存在を確認する
+      shell: yum list installed | grep -e '^httpd\.'
+      register: result_rpm
+
+    - name: httpdプロセスが起動しているかを確認する
+      shell: ps -ef | grep http[d]
+      register: result_proc
+
+    - name: httpdサービスが自動起動になっているか確認する
+      shell: systemctl is-enabled httpd
+      register: result_enabled
+
+  - name: 結果をまとめて確認する
+    assert:
+      that: "{{ result.failed == false }}"
+    loop:
+      - "{{ result_rpm }}"
+      - "{{ result_proc }}"
+      - "{{ result_enabled }}"
+    loop_control:
+      loop_var: result
